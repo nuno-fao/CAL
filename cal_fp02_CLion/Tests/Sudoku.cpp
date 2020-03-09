@@ -94,7 +94,29 @@ bool Sudoku::isComplete()
  */
 bool Sudoku::solve()
 {
-	return false;
+	int row, col;
+	if(isComplete()){
+	    return true;
+	}
+	if(!pickCell(&row,&col)){
+	    return false;
+	}
+	for(int num = 1;num<=9;num++){
+        if(isValid(num,row,col)){
+            numbers[row][col]=num;
+            print();
+            columnHasNumber[col][num]=true;
+            lineHasNumber[row][num]=true;
+            block3x3HasNumber[row][col][num]=true;
+            if(!solve()){
+                numbers[row][col]=0;
+                columnHasNumber[col][num]=false;
+                lineHasNumber[row][num]=false;
+                block3x3HasNumber[row][col][num]=false;
+            }
+        }
+	}
+	return true;
 }
 
 
@@ -111,4 +133,43 @@ void Sudoku::print()
 
 		cout << endl;
 	}
+}
+
+bool Sudoku::isValid(int n, int row, int col) {
+    if(numbers[row][col]!=0 || lineHasNumber[row][n] || columnHasNumber[n][col] || block3x3HasNumber[row/3][col/3][n]){
+        return false;
+    }
+    return true;
+}
+
+bool Sudoku::pickCell(int *row, int *col) {
+    int auxrow, auxcol, min=10, auxtotal;
+
+    for(int i=0;i<10;i++){
+        for(int j=0;j<10;j++) {
+            if (numbers[i][j] == 0) {
+                auxtotal = minValues(i, j);
+                if (auxtotal == 0) {
+                    return false;
+                }
+                if(auxtotal<min){
+                    min=auxtotal;
+                    *row=i;
+                    *col=j;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+int Sudoku::minValues(int row, int col) {
+    int out=9;
+    for(int n=1;n<10;n++){
+        if(columnHasNumber[row][n] || lineHasNumber[col][n] || block3x3HasNumber[row][col][n]){
+            out-=1;
+        }
+    }
+    return out;
 }

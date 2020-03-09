@@ -72,6 +72,23 @@ public:
 	 * Imprime o Sudoku.
 	 */
 	void print();
+
+    /**
+     * Verifica se é válido pôr o número n, na linha row e coluna col.
+     */
+    bool isValid(int n, int row, int col);
+
+    /**
+     * Verifica qual célula tem o minimo de valores possiveis e guarda coluna e linha nos argumentos passados.
+     * Retorna falso se uma célula com 0  tem 0 possibilidades (é impossivel resolver);
+     */
+    bool pickCell(int *row, int *col);
+
+    /**
+     * Verifica qual célula tem o minimo de valores possiveis e guarda coluna e linha nos argumentos passados.
+     */
+    int minValues(int row, int col);
+
 };
 
 #endif /* SUDOKU_H_ */
