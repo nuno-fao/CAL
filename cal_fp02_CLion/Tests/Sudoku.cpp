@@ -154,20 +154,21 @@ bool Sudoku::pickCell(int *row, int *col) {
                 }
                 if(auxtotal<min){
                     min=auxtotal;
-                    *row=i;
-                    *col=j;
+                    auxrow=i;
+                    auxcol=j;
                 }
             }
         }
     }
-
+    *row=auxrow;
+    *col=auxcol;
     return true;
 }
 
 int Sudoku::minValues(int row, int col) {
     int out=9;
     for(int n=1;n<10;n++){
-        if(columnHasNumber[row][n] || lineHasNumber[col][n] || block3x3HasNumber[row][col][n]){
+        if(columnHasNumber[row][n] || lineHasNumber[col][n] || block3x3HasNumber[row/3][col/3][n]){
             out-=1;
         }
     }
