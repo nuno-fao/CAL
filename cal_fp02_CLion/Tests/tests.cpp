@@ -124,6 +124,8 @@ TEST(CAL_FP02, testSudokuSomeBackStepsRequired) {
     sout[i][a] = res[i][a];
 
     compareSudokus(out, sout);
+
+    //s.print();
 }
 
 

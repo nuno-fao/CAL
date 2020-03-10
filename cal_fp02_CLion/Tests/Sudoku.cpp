@@ -104,19 +104,21 @@ bool Sudoku::solve()
 	for(int num = 1;num<=9;num++){
         if(isValid(num,row,col)){
             numbers[row][col]=num;
-            print();
+            countFilled++;
             columnHasNumber[col][num]=true;
             lineHasNumber[row][num]=true;
-            block3x3HasNumber[row][col][num]=true;
-            if(!solve()){
-                numbers[row][col]=0;
-                columnHasNumber[col][num]=false;
-                lineHasNumber[row][num]=false;
-                block3x3HasNumber[row][col][num]=false;
+            block3x3HasNumber[row/3][col/3][num]=true;
+            if(solve()){
+                return true;
             }
+            numbers[row][col]=0;
+            countFilled--;
+            columnHasNumber[col][num]=false;
+            lineHasNumber[row][num]=false;
+            block3x3HasNumber[row/3][col/3][num]=false;
         }
 	}
-	return true;
+	return false;
 }
 
 
@@ -136,17 +138,14 @@ void Sudoku::print()
 }
 
 bool Sudoku::isValid(int n, int row, int col) {
-    if(numbers[row][col]!=0 || lineHasNumber[row][n] || columnHasNumber[n][col] || block3x3HasNumber[row/3][col/3][n]){
-        return false;
-    }
-    return true;
+    return !(lineHasNumber[row][n] || columnHasNumber[col][n] || block3x3HasNumber[row / 3][col / 3][n]);
 }
 
 bool Sudoku::pickCell(int *row, int *col) {
-    int auxrow, auxcol, min=10, auxtotal;
+    int auxrow=9, auxcol=9, min=10, auxtotal;
 
-    for(int i=0;i<10;i++){
-        for(int j=0;j<10;j++) {
+    for(int i=0;i<9;i++){
+        for(int j=0;j<9;j++) {
             if (numbers[i][j] == 0) {
                 auxtotal = minValues(i, j);
                 if (auxtotal == 0) {
@@ -167,9 +166,10 @@ bool Sudoku::pickCell(int *row, int *col) {
 
 int Sudoku::minValues(int row, int col) {
     int out=9;
+    bool colbool, linebool, blockbool;
     for(int n=1;n<10;n++){
-        if(columnHasNumber[row][n] || lineHasNumber[col][n] || block3x3HasNumber[row/3][col/3][n]){
-            out-=1;
+        if(columnHasNumber[col][n] || lineHasNumber[row][n] || block3x3HasNumber[row/3][col/3][n]){
+            out--;
         }
     }
     return out;
