@@ -62,21 +62,19 @@ Result nearestPoints_BF(vector<Point> &vp) {
  * Improved brute force algorithm, that first sorts points by X axis.
  */
 Result nearestPoints_BF_SortByX(vector<Point> &vp) {
-	Result res;
-	sortByX(vp, 0, vp.size()-1);
-    res.dmin=9999999;
-    double aux=0;
-    for(size_t i=0;i<vp.size()-1;i++){
-        for(size_t j=i+1;j<vp.size();j++){
-            aux=vp[i].distance(vp[j]);
-            if(aux<res.dmin){
-                res.dmin=aux;
-                res.p1=vp[i];
-                res.p2=vp[j];
-            }
+    Result res;
+    sortByX(vp, 0, vp.size()-1);
+    for (unsigned i = 0; i < vp.size() && res.dmin > 0; i++) {
+        Point p = vp[i];
+        for (unsigned j = i + 1; j < vp.size(); j++) {
+            if (vp[j].x - p.x > res.dmin)
+                break;
+            double dist = p.distance(vp[j]);
+            if (dist < res.dmin)
+                res = Result(dist, p, vp[j]);
         }
     }
-	return res;
+    return res;
 }
 
 
@@ -88,7 +86,18 @@ Result nearestPoints_BF_SortByX(vector<Point> &vp) {
  */
 static void npByY(vector<Point> &vp, int left, int right, Result &res)
 {
-	// TODO
+    for (int i = left; i < right; i++) {
+        Point p = vp[i];
+        for (int j = i + 1; j <= right; j++) {
+            if (vp[j].y - p.y > res.dmin)
+                break;
+            else {
+                double d = p.distance(vp[j]);
+                if (d < res.dmin)
+                    res = Result(d, p, vp[j]);
+            }
+        }
+    }
 }
 
 /**
@@ -97,32 +106,42 @@ static void npByY(vector<Point> &vp, int left, int right, Result &res)
  * using at most numThreads.
  */
 static Result np_DC(vector<Point> &vp, int left, int right, int numThreads) {
-	// Base case of two points
-	// TODO
-
-	// Base case of a single point: no solution, so distance is MAX_DOUBLE
-	// TODO
+    // Base case of a single point (or none): no solution, so distance is MAX_DOUBLE
+    if (right <= left)
+        return Result();
+    // Base case of two points
+    if (right - left == 1)
+        return Result(vp[left].distance(vp[right]), vp[left], vp[right]);
 
 	// Divide in halves (left and right) and solve them recursively,
-	// possibly in parallel (in case numThreads > 1)
-	// TODO
-
-	// Select the best solution from left and right
-	// TODO
-
-	// Determine the strip area around middle point
-	// TODO
-
-	// Order points in strip area by Y coordinate
-	// TODO
-
-	// Calculate nearest points in strip area (using npByY function)
-	// TODO
-
-	// Reorder points in strip area back by X coordinate
-	//TODO
-
-	//return res;
+    // possibly in parallel (in case numThreads > 1)
+    int middle = (right + left)/2;
+    Result resL, resR;
+    if (numThreads > 1) {
+        thread t([&](){resL = np_DC(vp, left, middle, numThreads / 2);});
+        resR = np_DC(vp, middle + 1, right, numThreads / 2);
+        t.join();
+    }
+    else {
+        resL = np_DC(vp, left, middle, 1);
+        resR = np_DC(vp, middle + 1, right, 1);
+    }
+    // Select the best solution from left and right
+    Result res = resL.dmin < resR.dmin? resL : resR;
+    // Determine the strip area around middle point
+    double midX = (vp[middle].x + vp[middle+1].x) / 2;
+    int sLeft = middle, sRight = middle+1;
+    while (sLeft > left && vp[sLeft-1].x > midX - res.dmin)
+        sLeft--;
+    while (sRight < right && vp[sRight+1].x < midX + res.dmin)
+        sRight++;
+    // Order points in strip area by Y coordinate
+    sortByY(vp, sLeft, sRight);
+    // Calculate nearest points in strip area (using npByY function)
+    npByY(vp, sLeft, sRight, res);
+    // Reorder points in strip area back by X coordinate
+    sortByX(vp, sLeft, sRight);
+    return res;
 }
 
 
